@@ -5,6 +5,7 @@ namespace App\Repositories;
 use App\Contracts\PostRepositoryInterface;
 use App\Models\Post;
 use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Database\Query\Builder;
 
 class PostRepository implements PostRepositoryInterface
 {
@@ -46,8 +47,14 @@ class PostRepository implements PostRepositoryInterface
         return $model;
     }
 
-    public function top(): array
+    public function top(): Collection
     {
-        // TODO: Implement top() method.
+        return $this->post
+            ->query()
+            ->with('user:id,name')
+            ->orderBy('rating', 'desc')
+            ->groupBy('user_id')
+            ->havingRaw('MAX(rating)')
+            ->get();
     }
 }

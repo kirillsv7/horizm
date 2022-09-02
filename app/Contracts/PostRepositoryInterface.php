@@ -16,5 +16,5 @@ interface PostRepositoryInterface
 
     public function update(int $id, array $data): Post;
 
-    public function top(): array;
+    public function top(): Collection;
 }
