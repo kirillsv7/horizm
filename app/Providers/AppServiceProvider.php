@@ -3,7 +3,9 @@
 namespace App\Providers;
 
 use App\Contracts\PostRepositoryInterface;
+use App\Contracts\UserRepositoryInterface;
 use App\Repositories\PostRepository;
+use App\Repositories\UserRepository;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -13,6 +15,7 @@ class AppServiceProvider extends ServiceProvider
      */
     public array $bindings = [
         PostRepositoryInterface::class => PostRepository::class,
+        UserRepositoryInterface::class => UserRepository::class,
     ];
 
     /**
