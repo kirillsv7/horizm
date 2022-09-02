@@ -10,7 +10,7 @@ class UserRepository implements UserRepositoryInterface
 {
 
     public function __construct(
-        protected User $post,
+        protected User $user,
     ) {
     }
 
