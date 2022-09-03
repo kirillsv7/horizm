@@ -10,7 +10,7 @@ interface UserRepositoryInterface
 
     public function all(): Collection;
 
-    public function getByAvgPostsRating(): Collection;
+    public function getOrderedByAvgPostsRating(): Collection;
 
     public function get(int $id): ?User;
 

@@ -16,7 +16,7 @@ class UserController extends Controller
 
     public function index()
     {
-        $users = $this->repository->getByAvgPostsRating();
+        $users = $this->repository->getOrderedByAvgPostsRating();
 
         return IndexResource::collection($users);
     }

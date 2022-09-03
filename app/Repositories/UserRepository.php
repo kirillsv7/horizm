@@ -19,7 +19,7 @@ class UserRepository implements UserRepositoryInterface
         return $this->user::all();
     }
 
-    public function getByAvgPostsRating(): Collection
+    public function getOrderedByAvgPostsRating(): Collection
     {
         return $this->user
             ->query()

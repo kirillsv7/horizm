@@ -15,6 +15,13 @@ class PostController extends Controller
     ) {
     }
 
+    public function top()
+    {
+        $posts = $this->repository->top();
+
+        return TopResource::collection($posts);
+    }
+
     public function show($id)
     {
         $post = $this->repository->get($id);
@@ -24,12 +31,5 @@ class PostController extends Controller
         }
 
         return new ShowResource($post);
-    }
-
-    public function top()
-    {
-        $posts = $this->repository->top();
-
-        return TopResource::collection($posts);
     }
 }

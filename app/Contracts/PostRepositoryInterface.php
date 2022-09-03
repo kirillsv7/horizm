@@ -10,11 +10,11 @@ interface PostRepositoryInterface
 
     public function all(): Collection;
 
+    public function top(): Collection;
+
     public function get(int $id): ?Post;
 
     public function store(array $data): Post;
 
     public function update(int $id, array $data): Post;
-
-    public function top(): Collection;
 }
