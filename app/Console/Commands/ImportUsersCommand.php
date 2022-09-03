@@ -22,29 +22,19 @@ class ImportUsersCommand extends Command
     protected $description = 'This command import users, you must execute import:posts prevously';
 
     /**
-     * Create a new command instance.
-     *
-     * @return void
-     */
-    public function __construct(
-        protected ImportUsersService $service
-    )
-    {
-        parent::__construct();
-    }
-
-    /**
      * Execute the console command.
      *
      * @return int
      */
-    public function handle()
+    public function handle(ImportUsersService $service)
     {
-        if ($this->confirm('Import users?', true)) {
-            $this->service->handle();
-            $this->info('Users imported!');
-        }else{
+        if (!$this->confirm('Import users?', true)) {
             $this->warn('Users import cancelled!');
+
+            return;
         }
+
+        $service->handle();
+        $this->info('Users imported!');
     }
 }

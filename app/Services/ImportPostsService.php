@@ -13,7 +13,7 @@ use Symfony\Component\Console\Output\ConsoleOutput;
 class ImportPostsService
 {
     public function __construct(
-        protected PostRepositoryInterface $repository,
+        protected PostRepositoryInterface $postRepository,
         protected PostRatingCalculator $ratingCalculator,
         protected Http $client,
         protected ConsoleOutput $consoleOutput,
@@ -26,24 +26,21 @@ class ImportPostsService
         $posts = $this->getPosts();
         $posts = $this->limitPosts($posts);
 
-
         foreach ($posts as $post) {
-            $existentPost = $this->repository->get($post['id']);
-
-            $message = 'Post ' . $post['id'] . ' ';
+            $existentPost = $this->postRepository->get($post['id']);
 
             if ($existentPost) {
                 $postToUpdate = $this->preparePostToUpdate($existentPost, $post);
-                $this->repository->update($existentPost['id'], $postToUpdate);
-                $message .= 'updated';
+                $this->postRepository->update($existentPost['id'], $postToUpdate);
+                $status = 'updated';
             } else {
                 $postToCreate = $this->preparePostToCreate($post);
-                $this->repository->store($postToCreate);
-                $message .= 'created';
+                $this->postRepository->store($postToCreate);
+                $status = 'created';
             }
 
-            if (app()->runningInConsole() && !app()->runningUnitTests()) {
-                $this->consoleOutput->write($message, true);
+            if (app()->runningInConsole()) {
+                $this->consoleOutput->write(sprintf('Post %1$d %2$s', $post['id'], $status), true);
             }
         }
     }
@@ -60,7 +57,7 @@ class ImportPostsService
 
     public function getPosts(): array
     {
-        return $this->client::get('https://jsonplaceholder.typicode.com/posts')
+        return $this->client::get(env('API_POSTS_URL'))
                             ->json();
     }
 

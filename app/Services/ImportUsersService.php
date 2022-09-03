@@ -24,10 +24,8 @@ class ImportUsersService
         foreach ($userIds as $id) {
             $existentUser = $this->userRepository->get($id);
 
-            $message = "User $id ";
-
             if ($existentUser) {
-                $message .= 'already exists';
+                $status = 'already exists';
             } else {
                 $user     = $this->getUser($id);
                 $userData = [
@@ -37,18 +35,18 @@ class ImportUsersService
                     'city'  => $user['address']['city'],
                 ];
                 $this->userRepository->store($userData);
-                $message .= 'created';
+                $status = 'created';
             }
 
-            if (app()->runningInConsole() && !app()->runningUnitTests()) {
-                $this->consoleOutput->write($message, true);
+            if (app()->runningInConsole()) {
+                $this->consoleOutput->write(sprintf('User %1$d %2$s', $id, $status), true);
             }
         }
     }
 
     public function getUser($id): array
     {
-        return $this->client::get('https://jsonplaceholder.typicode.com/users', [
+        return $this->client::get(env('API_USERS_URL'), [
             'id' => $id,
         ])->json()[0];
     }
