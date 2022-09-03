@@ -34,7 +34,19 @@ class ImportUsersCommand extends Command
             return;
         }
 
-        $service->handle();
+        $userIds = $service->getUserIdsFromPosts();
+
+        if (empty($userIds)) {
+            $this->warn('No posts yet created!');
+
+            return;
+        }
+
+        foreach ($userIds as $id) {
+            $status = $service->handleUser($id);
+            $this->info(sprintf('User %1$d %2$s', $id, $status));
+        }
+
         $this->info('Users imported!');
     }
 }

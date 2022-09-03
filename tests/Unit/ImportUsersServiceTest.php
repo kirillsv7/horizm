@@ -2,8 +2,6 @@
 
 namespace Tests\Unit;
 
-use App\Contracts\UserRepositoryInterface;
-use App\Models\User;
 use App\Services\ImportUsersService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Artisan;
@@ -27,21 +25,47 @@ class ImportUsersServiceTest extends TestCase
 
     /**
      * @test
-     * @see ImportUsersService::handle()
+     * @see ImportUsersService::getUserIdsFromPosts()
      */
-    public function testHandle()
+    public function testGetUserIdsFromPosts()
+    {
+        $service = app()->make(ImportUsersService::class);
+        $userIds = $service->getUserIdsFromPosts();
+
+        $this->assertEmpty($userIds);
+
+        Artisan::call('import:posts', [
+            '--no-interaction' => true,
+        ]);
+
+        $userIds = $service->getUserIdsFromPosts();
+
+        $this->assertNotEmpty($userIds);
+    }
+
+    /**
+     * @test
+     * @see ImportUsersService::handleUser()
+     */
+    public function testHandleUser()
     {
         Artisan::call('import:posts', [
             '--no-interaction' => true,
         ]);
 
         $service = app()->make(ImportUsersService::class);
-        $service->handle();
+        $userIds = $service->getUserIdsFromPosts();
 
-        $userRepository = app()->make(UserRepositoryInterface::class);
+        foreach ($userIds as $id) {
+            $created = $service->handleUser($id);
 
-        $users = $userRepository->all();
+            $this->assertEquals('created', $created);
+        }
 
-        $this->assertInstanceOf(User::class, $users->random());
+        foreach ($userIds as $id) {
+            $alreadyExists = $service->handleUser($id);
+
+            $this->assertEquals('already exists', $alreadyExists);
+        }
     }
 }

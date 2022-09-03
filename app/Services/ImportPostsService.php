@@ -8,7 +8,6 @@ use App\Services\Calculators\PostBodyRatingCalculator;
 use App\Services\Calculators\PostRatingCalculator;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Str;
-use Symfony\Component\Console\Output\ConsoleOutput;
 
 class ImportPostsService
 {
@@ -16,33 +15,8 @@ class ImportPostsService
         protected PostRepositoryInterface $postRepository,
         protected PostRatingCalculator $ratingCalculator,
         protected Http $client,
-        protected ConsoleOutput $consoleOutput,
         protected int $limit = 50,
     ) {
-    }
-
-    public function handle()
-    {
-        $posts = $this->getPosts();
-        $posts = $this->limitPosts($posts);
-
-        foreach ($posts as $post) {
-            $existentPost = $this->postRepository->get($post['id']);
-
-            if ($existentPost) {
-                $postToUpdate = $this->preparePostToUpdate($existentPost, $post);
-                $this->postRepository->update($existentPost['id'], $postToUpdate);
-                $status = 'updated';
-            } else {
-                $postToCreate = $this->preparePostToCreate($post);
-                $this->postRepository->store($postToCreate);
-                $status = 'created';
-            }
-
-            if (app()->runningInConsole()) {
-                $this->consoleOutput->write(sprintf('Post %1$d %2$s', $post['id'], $status), true);
-            }
-        }
     }
 
     public function getLimit(): int
@@ -55,18 +29,17 @@ class ImportPostsService
         $this->limit = $limit;
     }
 
-    public function getPosts(): array
+    public function getPosts(string $url): array
     {
-        return $this->client::get(env('API_POSTS_URL'))
-                            ->json();
+        return $this->client::get($url)->json();
     }
 
-    protected function limitPosts($posts)
+    public function limitPosts($posts): array
     {
         return array_slice($posts, 0, $this->getLimit());
     }
 
-    protected function preparePostToCreate(array $post): array
+    public function preparePostToCreate(array $post): array
     {
         $postToCreate = [];
 
@@ -79,7 +52,7 @@ class ImportPostsService
         return $postToCreate;
     }
 
-    protected function preparePostToUpdate(Post $existentPost, array $post): array
+    public function preparePostToUpdate(Post $existentPost, array $post): array
     {
         $postToUpdate = $existentPost->toArray();
 
@@ -90,4 +63,20 @@ class ImportPostsService
         return $postToUpdate;
     }
 
+    public function handlePost(array $post): string
+    {
+        $existentPost = $this->postRepository->get($post['id']);
+
+        if ($existentPost) {
+            $postToUpdate = $this->preparePostToUpdate($existentPost, $post);
+            $this->postRepository->update($existentPost['id'], $postToUpdate);
+
+            return 'updated';
+        }
+
+        $postToCreate = $this->preparePostToCreate($post);
+        $this->postRepository->store($postToCreate);
+
+        return 'created';
+    }
 }

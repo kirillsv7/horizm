@@ -5,7 +5,6 @@ namespace App\Services;
 use App\Contracts\PostRepositoryInterface;
 use App\Contracts\UserRepositoryInterface;
 use Illuminate\Support\Facades\Http;
-use Symfony\Component\Console\Output\ConsoleOutput;
 
 class ImportUsersService
 {
@@ -13,35 +12,7 @@ class ImportUsersService
         protected UserRepositoryInterface $userRepository,
         protected PostRepositoryInterface $postRepository,
         protected Http $client,
-        protected ConsoleOutput $consoleOutput,
     ) {
-    }
-
-    public function handle()
-    {
-        $userIds = $this->postRepository->all()->pluck('user_id')->unique()->values();
-
-        foreach ($userIds as $id) {
-            $existentUser = $this->userRepository->get($id);
-
-            if ($existentUser) {
-                $status = 'already exists';
-            } else {
-                $user     = $this->getUser($id);
-                $userData = [
-                    'id'    => $user['id'],
-                    'name'  => $user['name'],
-                    'email' => $user['email'],
-                    'city'  => $user['address']['city'],
-                ];
-                $this->userRepository->store($userData);
-                $status = 'created';
-            }
-
-            if (app()->runningInConsole()) {
-                $this->consoleOutput->write(sprintf('User %1$d %2$s', $id, $status), true);
-            }
-        }
     }
 
     public function getUser($id): array
@@ -51,5 +22,28 @@ class ImportUsersService
         ])->json()[0];
     }
 
+    public function getUserIdsFromPosts(): array
+    {
+        return $this->postRepository->all()->pluck('user_id')->unique()->values()->toArray();
+    }
 
+    public function handleUser(int $id): string
+    {
+        $existentUser = $this->userRepository->get($id);
+
+        if ($existentUser) {
+            return 'already exists';
+        }
+
+        $user     = $this->getUser($id);
+        $userData = [
+            'id'    => $user['id'],
+            'name'  => $user['name'],
+            'email' => $user['email'],
+            'city'  => $user['address']['city'],
+        ];
+        $this->userRepository->store($userData);
+
+        return 'created';
+    }
 }

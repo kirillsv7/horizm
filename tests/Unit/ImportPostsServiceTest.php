@@ -18,7 +18,7 @@ class ImportPostsServiceTest extends TestCase
     public function testGetPosts()
     {
         $service = app()->make(ImportPostsService::class);
-        $posts   = $service->getPosts();
+        $posts   = $service->getPosts(env('API_POSTS_URL'));
 
         $this->assertIsArray($posts);
     }
@@ -31,15 +31,8 @@ class ImportPostsServiceTest extends TestCase
     {
         $service = app()->make(ImportPostsService::class);
         $service->setLimit(20);
-
-        $serviceReflection = new \ReflectionClass($service);
-        $getPosts          = $serviceReflection->getMethod('getPosts');
-        $limitPosts        = $serviceReflection->getMethod('limitPosts');
-        $getPosts->setAccessible(true);
-        $limitPosts->setAccessible(true);
-
-        $posts = $getPosts->invoke($service);
-        $posts = $limitPosts->invokeArgs($service, [$posts]);
+        $posts = $service->getPosts(env('API_POSTS_URL'));
+        $posts = $service->limitPosts($posts);
 
         $this->assertCount($service->getLimit(), $posts);
     }
@@ -50,14 +43,10 @@ class ImportPostsServiceTest extends TestCase
      */
     public function testPreparePostToCreate()
     {
-        $service = app()->make(ImportPostsService::class);
-        $post    = $service->getPosts()[rand(0, $service->getLimit())];
-
-        $serviceReflection   = new \ReflectionClass($service);
-        $preparePostToCreate = $serviceReflection->getMethod('preparePostToCreate');
-        $preparePostToCreate->setAccessible(true);
-
-        $preparedPost = $preparePostToCreate->invokeArgs($service, [$post]);
+        $service      = app()->make(ImportPostsService::class);
+        $posts        = $service->getPosts(env('API_POSTS_URL'));
+        $post         = $posts[array_rand($posts)];
+        $preparedPost = $service->preparePostToCreate($post);
 
         $this->assertArrayHasKey('id', $preparedPost);
         $this->assertArrayHasKey('user_id', $preparedPost);
@@ -84,13 +73,8 @@ class ImportPostsServiceTest extends TestCase
         $oldPost        = $postRepository->store($oldPostData);
 
         $service     = app()->make(ImportPostsService::class);
-        $newPostData = $service->getPosts()[0];
-
-        $serviceReflection   = new \ReflectionClass($service);
-        $preparePostToUpdate = $serviceReflection->getMethod('preparePostToUpdate');
-        $preparePostToUpdate->setAccessible(true);
-
-        $updatedPost = $preparePostToUpdate->invokeArgs($service, [$oldPost, $newPostData]);
+        $newPostData = $service->getPosts(env('API_POSTS_URL'))[0];
+        $updatedPost = $service->preparePostToUpdate($oldPost, $newPostData);
 
         $this->assertEquals($oldPostData['id'], $updatedPost['id']);
         $this->assertEquals($oldPostData['user_id'], $updatedPost['user_id']);
@@ -101,17 +85,18 @@ class ImportPostsServiceTest extends TestCase
 
     /**
      * @test
-     * @see ImportPostsService::handle()
+     * @see ImportPostsService::handlePost()
      */
-    public function testHandle()
+    public function testHandlePost()
     {
-        $service = app()->make(ImportPostsService::class);
-        $service->handle();
+        $service      = app()->make(ImportPostsService::class);
+        $posts        = $service->getPosts(env('API_POSTS_URL'));
+        $post         = $posts[array_rand($posts)];
+        $preparedPost = $service->preparePostToCreate($post);
+        $created      = $service->handlePost($preparedPost);
+        $updated      = $service->handlePost($preparedPost);
 
-        $postRepository = app()->make(PostRepositoryInterface::class);
-
-        $postsCount = $postRepository->all()->count();
-
-        $this->assertEquals($service->getLimit(), $postsCount);
+        $this->assertEquals('created', $created);
+        $this->assertEquals('updated', $updated);
     }
 }
