@@ -18,6 +18,10 @@ class Post extends Model
         'rating',
     ];
 
+    protected $casts = [
+        'rating' => 'integer',
+    ];
+
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
