@@ -34,8 +34,7 @@ class ImportPostsCommand extends Command
             return;
         }
 
-        $posts = $service->getPosts(env('API_POSTS_URL'));
-        $posts = $service->limitPosts($posts);
+        $posts = $service->getPostsFromApi(env('API_POSTS_URL'));
 
         foreach ($posts as $post) {
             $status = $service->handlePost($post);

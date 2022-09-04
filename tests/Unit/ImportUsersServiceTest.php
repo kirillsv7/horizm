@@ -13,12 +13,12 @@ class ImportUsersServiceTest extends TestCase
 
     /**
      * @test
-     * @see ImportUsersService::getUser()
+     * @see ImportUsersService::getUserFromApi()
      */
-    public function testGetUser()
+    public function testGetUserFromApi()
     {
         $service = app()->make(ImportUsersService::class);
-        $user    = $service->getUser(1);
+        $user    = $service->getUserFromApi(1);
 
         $this->assertIsArray($user);
     }

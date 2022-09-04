@@ -15,7 +15,7 @@ class ImportUsersService
     ) {
     }
 
-    public function getUser($id): array
+    public function getUserFromApi($id): array
     {
         return $this->client::get(env('API_USERS_URL'), [
             'id' => $id,
@@ -35,7 +35,7 @@ class ImportUsersService
             return 'already exists';
         }
 
-        $user     = $this->getUser($id);
+        $user     = $this->getUserFromApi($id);
         $userData = [
             'id'    => $user['id'],
             'name'  => $user['name'],

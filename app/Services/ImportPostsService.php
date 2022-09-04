@@ -29,9 +29,11 @@ class ImportPostsService
         $this->limit = $limit;
     }
 
-    public function getPosts(string $url): array
+    public function getPostsFromApi(string $url): array
     {
-        return $this->client::get($url)->json();
+        $posts = $this->client::get($url)->json();
+
+        return $this->limitPosts($posts);
     }
 
     public function limitPosts($posts): array

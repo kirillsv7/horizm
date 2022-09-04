@@ -13,12 +13,12 @@ class ImportPostsServiceTest extends TestCase
 
     /**
      * @test
-     * @see ImportPostsService::getPosts()
+     * @see ImportPostsService::getPostsFromApi()
      */
-    public function testGetPosts()
+    public function testGetPostsFromApi()
     {
         $service = app()->make(ImportPostsService::class);
-        $posts   = $service->getPosts(env('API_POSTS_URL'));
+        $posts   = $service->getPostsFromApi(env('API_POSTS_URL'));
 
         $this->assertIsArray($posts);
     }
@@ -31,8 +31,7 @@ class ImportPostsServiceTest extends TestCase
     {
         $service = app()->make(ImportPostsService::class);
         $service->setLimit(20);
-        $posts = $service->getPosts(env('API_POSTS_URL'));
-        $posts = $service->limitPosts($posts);
+        $posts = $service->getPostsFromApi(env('API_POSTS_URL'));
 
         $this->assertCount($service->getLimit(), $posts);
     }
@@ -44,7 +43,7 @@ class ImportPostsServiceTest extends TestCase
     public function testPreparePostToCreate()
     {
         $service      = app()->make(ImportPostsService::class);
-        $posts        = $service->getPosts(env('API_POSTS_URL'));
+        $posts        = $service->getPostsFromApi(env('API_POSTS_URL'));
         $post         = $posts[array_rand($posts)];
         $preparedPost = $service->preparePostToCreate($post);
 
@@ -73,7 +72,7 @@ class ImportPostsServiceTest extends TestCase
         $oldPost        = $postRepository->store($oldPostData);
 
         $service     = app()->make(ImportPostsService::class);
-        $newPostData = $service->getPosts(env('API_POSTS_URL'))[0];
+        $newPostData = $service->getPostsFromApi(env('API_POSTS_URL'))[0];
         $updatedPost = $service->preparePostToUpdate($oldPost, $newPostData);
 
         $this->assertEquals($oldPostData['id'], $updatedPost['id']);
@@ -90,7 +89,7 @@ class ImportPostsServiceTest extends TestCase
     public function testHandlePost()
     {
         $service      = app()->make(ImportPostsService::class);
-        $posts        = $service->getPosts(env('API_POSTS_URL'));
+        $posts        = $service->getPostsFromApi(env('API_POSTS_URL'));
         $post         = $posts[array_rand($posts)];
         $preparedPost = $service->preparePostToCreate($post);
         $created      = $service->handlePost($preparedPost);
